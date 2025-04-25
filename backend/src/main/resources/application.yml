@@ -4,7 +4,7 @@ spring:
   application:
     name: backend
   profiles:
-    active: dev
+    active: secret
   mvc:
     favicon:
       enabled: false
