@@ -13,10 +13,10 @@ public class ApiService {
         this.webClientBuilder = webClientBuilder;
     }
 
-    public Mono<String> getExternalData() {
+    public Mono<String> postGenerateScript() {
         return webClientBuilder.build()
-                .get()
-                .uri("http://192.168.219.114/generate-script")
+                .post()
+                .uri("http://127.0.0.1:8000/generate-script")
                 .retrieve()
                 .bodyToMono(String.class);
     }

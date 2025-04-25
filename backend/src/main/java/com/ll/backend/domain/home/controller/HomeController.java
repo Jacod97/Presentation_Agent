@@ -16,6 +16,6 @@ public class HomeController {
 
     @GetMapping("/")
     public Mono<String> home() {
-        return apiService.getExternalData();
+        return apiService.postGenerateScript();
     }
 }
