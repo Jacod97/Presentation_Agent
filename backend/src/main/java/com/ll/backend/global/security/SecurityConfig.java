@@ -1,15 +1,25 @@
 package com.ll.backend.global.security;
 
+import com.ll.backend.global.security.jwt.JwtAuthFilter;
+import com.ll.backend.global.security.jwt.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
 
+    private final JwtUtil jwtUtil;
+
+    public SecurityConfig(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -17,16 +27,34 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorizeRequests ->
-                        authorizeRequests.requestMatchers("/api/refresh")
-                                .permitAll()
-                                .requestMatchers("/api/member/login")
-                                .permitAll()
-                                .requestMatchers("/")
-                                .permitAll()
-                                .anyRequest()
-                                .authenticated());
+                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
+                        .requestMatchers("/api/login",
+                                "/api/reissue",
+                                "/login",
+                                "/",
+                                "/api/auth/register",
+                                "/h2-console/**",
+                                "/ws/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/actuator/health",
+                                "/pub/chat/message",
+                                "null").permitAll()  //인증없이 접속가능
+                        .anyRequest().authenticated() // 인증 필요
+                )
+                .headers(headers -> headers
+                        .defaultsDisabled()
+                        .frameOptions(frame -> frame.sameOrigin())
+                )
+                .addFilterBefore(new JwtAuthFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);  // jwt 유효성 검사;
 
         return http.build();
+    }
+
+    @Bean
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
+
+        return new BCryptPasswordEncoder();
     }
 }
