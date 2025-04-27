@@ -25,10 +25,6 @@ public class JwtUtil {
     @Value("${custom.jwt.refreshExpiration}")
     private Long refreshExpiration;
 
-    public JwtUtil() {
-
-    }
-
     public String generateAccessToken(CustomUserDetails user) {
         long now = System.currentTimeMillis();
 

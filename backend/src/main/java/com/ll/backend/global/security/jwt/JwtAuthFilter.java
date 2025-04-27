@@ -9,6 +9,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private final JwtUtil jwtUtil;
+
+    public JwtAuthFilter(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         filterChain.doFilter(request, response);
