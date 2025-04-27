@@ -1,3 +1,4 @@
 test.ipynb 
 *.pdf
 .env
+/data

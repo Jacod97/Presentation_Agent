@@ -16,7 +16,7 @@ public class ApiService {
     public Mono<String> getExternalData() {
         return webClientBuilder.build()
                 .get()
-                .uri("http://192.168.219.114/generate-script")
+                .uri("http://127.0.0.1:8000/generate-script")
                 .retrieve()
                 .bodyToMono(String.class);
     }
