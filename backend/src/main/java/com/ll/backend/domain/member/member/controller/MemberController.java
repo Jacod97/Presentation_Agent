@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/member")
 public class MemberController {
@@ -23,15 +25,17 @@ public class MemberController {
     }
 
     record LoginRequest (
-            String id,
+            String username,
             String password
     ){}
 
     @PostMapping("/login")
-    public ResponseEntity<Member> login(
+    public ResponseEntity<Map<String, String>> login(
             @RequestBody LoginRequest dto
     ) {
-        return ResponseEntity.ok(new Member("name", "", "", ""));
+        memberService.login(dto.username, dto.password);
+
+        return ResponseEntity.ok(Map.of("message", "로그인 성공"));
     }
 
     record RegisterRequest (

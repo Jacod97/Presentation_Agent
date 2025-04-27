@@ -1,6 +1,6 @@
 package com.ll.backend.global.security.jwt;
 
-import com.ll.backend.global.security.dto.CustomUserDetails;
+import com.ll.backend.domain.member.member.entity.Member;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,23 +25,34 @@ public class JwtUtil {
     @Value("${custom.jwt.refreshExpiration}")
     private Long refreshExpiration;
 
-    public String generateAccessToken(CustomUserDetails user) {
+    public String generateAccessToken(Member member, int type) {
         long now = System.currentTimeMillis();
 
-        return Jwts.builder()
-                .claims(createClaims(user))
-                .issuedAt(new Date(now))
-                .expiration(new Date(now + accessExpiration))
-                .signWith(Keys.hmacShaKeyFor(accessKey.getBytes()))
-                .compact();
+        if (type == 1) {
+            return Jwts.builder()
+                    .claims(createClaims(member))
+                    .issuedAt(new Date(now))
+                    .expiration(new Date(now + accessExpiration))
+                    .signWith(Keys.hmacShaKeyFor(accessKey.getBytes()))
+                    .compact();
+        }
+        else {
+            return Jwts.builder()
+                    .claims(createClaims(member))
+                    .issuedAt(new Date(now))
+                    .expiration(new Date(now + refreshExpiration))
+                    .signWith(Keys.hmacShaKeyFor(refreshKey.getBytes()))
+                    .compact();
+        }
+
     }
 
-    private Map<String, ?> createClaims(CustomUserDetails user) {
+    private Map<String, ?> createClaims(Member member) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", user.getUsername());
-        claims.put("memberId", user.getMemberId());
-        claims.put("nickname", user.getNickname());
-        claims.put("role", user.getRole());
+        claims.put("username", member.getUsername());
+        claims.put("memberId", member.getId());
+        claims.put("nickname", member.getNickname());
+        claims.put("role", member.getRole());
 
         return claims;
     }

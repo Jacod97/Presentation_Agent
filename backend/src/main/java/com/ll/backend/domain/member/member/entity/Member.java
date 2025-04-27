@@ -14,12 +14,15 @@ public class Member {
     String password;
     String nickname;
     String email;
+    String role;
 
-    public Member(String username, String password, String nickname, String email) {
+
+    public Member(String username, String password, String nickname, String email, String role) {
         this.username = username;
         this.password = password;
         this.nickname = nickname;
         this.email = email;
+        this.role = role;
     }
 
     public long getId() {
@@ -60,5 +63,13 @@ public class Member {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
