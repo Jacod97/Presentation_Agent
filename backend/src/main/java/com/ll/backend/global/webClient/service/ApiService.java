@@ -15,7 +15,11 @@ public class ApiService {
 
     public Mono<String> postGenerateScript() {
         return webClientBuilder.build()
+<<<<<<< HEAD
+                .get()
+=======
                 .post()
+>>>>>>> c6a8cff564708b79e95dfa7a4d6ec73a059a931a
                 .uri("http://127.0.0.1:8000/generate-script")
                 .retrieve()
                 .bodyToMono(String.class);
