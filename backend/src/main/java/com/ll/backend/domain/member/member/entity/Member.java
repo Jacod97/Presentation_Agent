@@ -1,5 +1,6 @@
 package com.ll.backend.domain.member.member.entity;
 
+import io.jsonwebtoken.Claims;
 import jakarta.persistence.*;
 
 @Entity
@@ -7,7 +8,7 @@ public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    long id;
+    Long id;
 
     @Column(nullable = false,unique=true)
     String username;
@@ -16,6 +17,7 @@ public class Member {
     String email;
     String role;
 
+    public Member() {}
 
     public Member(String username, String password, String nickname, String email, String role) {
         this.username = username;
@@ -23,6 +25,13 @@ public class Member {
         this.nickname = nickname;
         this.email = email;
         this.role = role;
+    }
+
+    public Member(Claims claims) {
+        this.id = claims.get("memberId", Long.class);
+        this.username = claims.get("username", String.class);
+        this.role = claims.get("role", String.class);
+        this.nickname = claims.get("nickname", String.class);
     }
 
     public long getId() {
