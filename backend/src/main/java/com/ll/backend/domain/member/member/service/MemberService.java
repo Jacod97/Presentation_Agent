@@ -4,6 +4,7 @@ import com.ll.backend.domain.member.member.entity.Member;
 import com.ll.backend.domain.member.member.repository.MemberRepository;
 import com.ll.backend.global.exception.GlobalErrorCode;
 import com.ll.backend.global.exception.GlobalException;
+import com.ll.backend.global.security.jwt.JwtType;
 import com.ll.backend.global.security.jwt.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -39,8 +40,7 @@ public class MemberService {
     }
 
     public void login(String username, String password) {
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new GlobalException(GlobalErrorCode.NON_EXISTING_USERNAME));
+        Member member = findByUsername(username);
 
         if (!bCryptPasswordEncoder.matches(password, member.getPassword())) {
             throw new GlobalException(GlobalErrorCode.INCORRECT_PASSWORD);
@@ -50,8 +50,8 @@ public class MemberService {
     }
 
     private void createToken(Member member) {
-        String accessToken = jwtUtil.generateAccessToken(member, 1);
-        String refreshToken = jwtUtil.generateAccessToken(member, 2);
+        String accessToken = jwtUtil.generateToken(member, JwtType.ACCESS);
+        String refreshToken = jwtUtil.generateToken(member, JwtType.REFRESH);
 
         String refreshCookie = ResponseCookie
                 .from("refresh", refreshToken)
@@ -64,5 +64,10 @@ public class MemberService {
 
         response.addHeader("Set-Cookie", refreshCookie);
         response.addHeader("accessToken", accessToken);
+    }
+
+    public Member findByUsername(String username) {
+        return memberRepository.findByUsername(username)
+                .orElseThrow(() -> new GlobalException(GlobalErrorCode.NON_EXISTING_USERNAME));
     }
 }

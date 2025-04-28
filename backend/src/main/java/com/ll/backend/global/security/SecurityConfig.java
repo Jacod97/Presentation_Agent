@@ -4,7 +4,6 @@ import com.ll.backend.global.security.jwt.JwtAuthFilter;
 import com.ll.backend.global.security.jwt.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -28,20 +27,16 @@ public class SecurityConfig {
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
-                        .requestMatchers("/api/login",
+                        .requestMatchers("/api/member/**",
                                 "/api/reissue",
-                                "/login",
                                 "/",
-                                "/api/auth/register",
                                 "/h2-console/**",
                                 "/ws/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/actuator/health",
-                                "/pub/chat/message",
-                                "null").permitAll()  //인증없이 접속가능
-                        .anyRequest().authenticated() // 인증 필요
+                                "/v3/api-docs/**")
+                        .permitAll()  //인증없이 접속가능
+                        .anyRequest()
+                        .authenticated() // 인증 필요
                 )
                 .headers(headers -> headers
                         .defaultsDisabled()
