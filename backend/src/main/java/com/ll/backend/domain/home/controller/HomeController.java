@@ -14,7 +14,7 @@ public class HomeController {
         this.apiService = apiService;
     }
 
-    @PostMapping("/")
+    @PostMapping("/home")
     public Mono<String> home(@ModelAttribute ScriptDto scriptDto) {
         return apiService.postGenerateScript(scriptDto.getDoc(), scriptDto.getPdf());
     }

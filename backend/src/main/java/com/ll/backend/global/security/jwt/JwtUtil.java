@@ -13,16 +13,16 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    @Value("${custom.jwt.accessSecret}")
+    @Value("${custom.jwt.access}")
     private String accessKey;
 
-    @Value("${custom.jwt.refreshSecret}")
+    @Value("${custom.jwt.refresh}")
     private String refreshKey;
 
-    @Value("${custom.jwt.accessExpiration}")
+    @Value("${security.time.access}")
     private Long accessExpiration;
 
-    @Value("${custom.jwt.refreshExpiration}")
+    @Value("${security.time.refresh}")
     private Long refreshExpiration;
 
     public String generateToken(Member member, JwtType type) {

@@ -1,5 +1,6 @@
 package com.ll.backend.global.security;
 
+import com.ll.backend.global.redis.RedisRepository;
 import com.ll.backend.global.security.jwt.JwtAuthFilter;
 import com.ll.backend.global.security.jwt.JwtUtil;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +16,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
+    private final RedisRepository redisRepository;
 
-    public SecurityConfig(JwtUtil jwtUtil) {
+    public SecurityConfig(JwtUtil jwtUtil, RedisRepository redisRepository) {
         this.jwtUtil = jwtUtil;
+        this.redisRepository = redisRepository;
     }
 
     @Bean
@@ -42,7 +45,7 @@ public class SecurityConfig {
                         .defaultsDisabled()
                         .frameOptions(frame -> frame.sameOrigin())
                 )
-                .addFilterBefore(new JwtAuthFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);  // jwt 유효성 검사;
+                .addFilterBefore(new JwtAuthFilter(jwtUtil, redisRepository), UsernamePasswordAuthenticationFilter.class);  // jwt 유효성 검사;
 
         return http.build();
     }

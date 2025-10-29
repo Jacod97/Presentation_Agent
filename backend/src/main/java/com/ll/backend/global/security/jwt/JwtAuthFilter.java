@@ -3,9 +3,11 @@ package com.ll.backend.global.security.jwt;
 import com.ll.backend.domain.member.member.entity.Member;
 import com.ll.backend.global.exception.GlobalErrorCode;
 import com.ll.backend.global.exception.GlobalException;
+import com.ll.backend.global.redis.RedisRepository;
 import com.ll.backend.global.security.dto.CustomUserData;
 import com.ll.backend.global.security.dto.CustomUserDetails;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -39,11 +41,13 @@ import java.io.IOException;
  */
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
+        private final JwtUtil jwtUtil;
+        private final RedisRepository redisRepository;
 
-    public JwtAuthFilter(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
-    }
+        public JwtAuthFilter(JwtUtil jwtUtil, RedisRepository redisRepository) {
+            this.jwtUtil = jwtUtil;
+            this.redisRepository = redisRepository;
+        }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -53,39 +57,41 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         String accessToken = request.getHeader("accessToken");
+
         if (accessToken != null) {
-            Claims claims = jwtUtil.parseToken(accessToken, JwtType.ACCESS);
-            setAuthentication(claims);
+            try{
+                Claims claims = jwtUtil.parseToken(accessToken, JwtType.ACCESS);
+                setAuthentication(claims);
 
-            filterChain.doFilter(request, response);
-            return;
+                filterChain.doFilter(request, response);
+            } catch (ExpiredJwtException e) {
+                String refreshToken = getRefreshToken(request.getCookies());
+                if (refreshToken != null) {
+                    Claims claims = jwtUtil.parseToken(refreshToken, JwtType.REFRESH);
+                    Member member = new Member(claims);
+                    String newAccessToken = jwtUtil.generateToken(member, JwtType.ACCESS);
+                    String newRefreshToken = jwtUtil.generateToken(member, JwtType.REFRESH);
+
+                    String refreshCookie = ResponseCookie
+                            .from("refresh", newRefreshToken)
+                            .path("/")
+                            .httpOnly(true)
+                            .secure(true)
+                            .sameSite("None")
+                            .build()
+                            .toString();
+
+                    response.addHeader("Set-Cookie", refreshCookie);
+                    response.addHeader("accessToken", newAccessToken);
+
+                    setAuthentication(claims);
+
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+                throw new GlobalException(GlobalErrorCode.NOT_FOUND_REFRESHTOKEN);
+            }
         }
-
-        String refreshToken = getRefreshToken(request.getCookies());
-        if (refreshToken != null) {
-            Claims claims = jwtUtil.parseToken(refreshToken, JwtType.REFRESH);
-            Member member = new Member(claims);
-            String newAccessToken = jwtUtil.generateToken(member, JwtType.ACCESS);
-            String newRefreshToken = jwtUtil.generateToken(member, JwtType.REFRESH);
-
-            String refreshCookie = ResponseCookie
-                    .from("refresh", newRefreshToken)
-                    .path("/")
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite("None")
-                    .build()
-                    .toString();
-
-            response.addHeader("Set-Cookie", refreshCookie);
-            response.addHeader("accessToken", newAccessToken);
-
-            setAuthentication(claims);
-
-            filterChain.doFilter(request, response);
-            return;
-        }
-        throw new GlobalException(GlobalErrorCode.NOT_FOUND_REFRESHTOKEN);
     }
 
     private void setAuthentication(Claims claims) {
@@ -119,7 +125,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
         return path.startsWith("/v3/api-docs") ||
                 path.startsWith("/swagger-ui") ||
-                path.startsWith("/") ||
-                path.startsWith("/api/member");
+                path.startsWith("/api/member") ||
+                path.equals("/");
     }
 }
