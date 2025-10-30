@@ -2,6 +2,7 @@ package com.ll.backend.domain.member.member.controller;
 
 import com.ll.backend.domain.member.member.entity.Member;
 import com.ll.backend.domain.member.member.service.MemberService;
+import com.ll.backend.global.redis.RedisRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -21,9 +22,11 @@ import java.util.Map;
 public class MemberController {
 
     private final MemberService memberService;
+    private final RedisRepository redisRepository;
 
-    public MemberController(MemberService memberService) {
+    public MemberController(MemberService memberService, RedisRepository redisRepository) {
         this.memberService = memberService;
+        this.redisRepository = redisRepository;
     }
 
     record LoginRequest (
@@ -40,6 +43,8 @@ public class MemberController {
 
         String accessToken = tokens[0];
         String refreshToken = tokens[1];
+
+        redisRepository.save(refreshToken, accessToken, 86400000L);
 
         String refreshCookie = ResponseCookie
                 .from("refresh", refreshToken)
