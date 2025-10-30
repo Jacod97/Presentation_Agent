@@ -22,6 +22,7 @@ public class Member extends BaseTime {
 
     public Member(Claims claims) {
         setId(claims.get("memberId", Long.class));
+        this.password = "";
         this.username = claims.get("username", String.class);
         this.role = claims.get("role", String.class);
         this.nickname = claims.get("nickname", String.class);
